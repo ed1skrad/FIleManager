@@ -8,7 +8,7 @@
 #include <ncurses.h>
 #include <fcntl.h>
 #include "input_window.h"
-#define MAX_TABS 9
+#define MAX_TABS 10
 
 CopiedFile copied_file_or_directory;
 
@@ -200,11 +200,10 @@ void FilePanel::switch_to_tab(int tab_index) {
 
 void FilePanel::show_tabs() {
     // Display all tabs in a separate window
-    int tab_win_y = LINES - 10; // Bottom of the screen
+    int tab_win_y = LINES - 15; // Bottom of the screen (increased by 5)
     int tab_win_x = 0; // Left of the screen
-    int tab_win_h = 10;
+    int tab_win_h = 15; // Height of the window (increased by 5)
     int tab_win_w = COLS / 3; // One third of the screen width
-
 
     WINDOW* tab_win = newwin(tab_win_h, tab_win_w, tab_win_y, tab_win_x);
     werase(tab_win);

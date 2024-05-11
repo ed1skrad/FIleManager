@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include "input_window.h"
+#include "help_window.h"
 #include "FilePanel.h"
 
 int main() {
@@ -119,7 +120,7 @@ int main() {
             case 'T':
                 (active_panel ? left_panel : right_panel).show_tabs();
                 break;
-            case KEY_F(12): // F12 key
+            case KEY_F(12):
             {
                 InputWindow input_window(100, 10);
                 std::string message = "Enter the tab number to delete (0-9): ";
@@ -156,6 +157,12 @@ int main() {
             case 'o':
                 (active_panel ? left_panel : right_panel).open_file();
                 break;
+            case 'h':
+            {
+                HelpWindow help_window(35, 70);
+                help_window.show();
+                break;
+            }
             case 'q':
                 endwin();
                 return 0;
