@@ -161,11 +161,9 @@ int main() {
                 return 0;
             case KEY_F(5):
             {
-                // Обновляем размеры панелей
                 left_panel.set_size(LINES, COLS / 2);
                 right_panel.set_size(LINES, COLS / 2);
 
-                // Обновляем позиции панелей
                 left_panel.set_position(0, 0);
                 right_panel.set_position(0, COLS / 2);
 

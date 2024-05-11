@@ -85,6 +85,12 @@ void FilePanel::draw() {
         }
     }
 
+    if (selected_file >= 0 && selected_file < static_cast<int>(files.size())) {
+        std::string selected_file_name = files[selected_file];
+        mvwprintw(win, h - 3, 1, "Selected: %s", selected_file_name.c_str());
+    }
+
+
     for (int i = 1; i < h + 100; ++i) {
         mvwaddch(win, i, w - 1, ACS_VLINE);
     }
@@ -148,12 +154,11 @@ void FilePanel::list_directory() {
 
     dirent* entry;
     while ((entry = readdir(dir)) != nullptr) {
-        // Skip special directories "." and ".."
         if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
-            continue;
+            files.insert(files.begin(), entry->d_name);
+        } else {
+            files.push_back(entry->d_name);
         }
-
-        files.push_back(entry->d_name);
     }
 
     closedir(dir);
