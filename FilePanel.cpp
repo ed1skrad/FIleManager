@@ -223,9 +223,17 @@ void FilePanel::show_tabs() {
 }
 
 void FilePanel::delete_tab(int index) {
-    if (index >= 0 && index < 9 && tabs[index] != "") {
-        tabs[index] = "";
+    if (index < 0 || index >= MAX_TABS) {
+        mvprintw(LINES - 2, 0, "Invalid tab index");
+        return;
     }
+
+    if (!isdigit(tabs[index][0])) {
+        mvprintw(LINES - 2, 0, "Invalid tab index");
+        return;
+    }
+
+    tabs[index] = "";
 }
 
 std::string FilePanel::get_tab_by_index(int index) const {

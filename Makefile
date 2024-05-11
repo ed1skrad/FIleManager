@@ -1,6 +1,6 @@
 CXX = g++
 CXXFLAGS = -std=c++11 -Wall -Werror -pedantic
-LDLIBS = -lncurses
+LDLIBS = -lncurses -lstdc++fs
 
 SRC_FILES = $(wildcard *.cpp)
 OBJ_FILES = $(patsubst %.cpp, %.o, $(SRC_FILES))

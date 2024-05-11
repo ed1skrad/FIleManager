@@ -5,6 +5,7 @@
 #include "input_window.h"
 #include "help_window.h"
 #include "FilePanel.h"
+#include "file_operations.h"
 
 int main() {
     initscr();
@@ -146,6 +147,26 @@ int main() {
             case KEY_F(2):
             {
                 (active_panel ? left_panel : right_panel).rename_file_or_directory();
+                break;
+            }
+            case 'n': {
+                FilePanel* current_panel = active_panel ? &left_panel : &right_panel;
+                InputWindow input_window(120, 8);
+                std::string message = "Enter new file name: ";
+                std::string response = input_window.show(message);
+                std::string file_path = current_panel->get_current_dir() + "/" + response;
+                create_file(file_path);
+                current_panel->update();
+                break;
+            }
+            case 'm': {
+                FilePanel* current_panel = active_panel ? &left_panel : &right_panel;
+                InputWindow input_window(120, 8);
+                std::string message = "Enter new directory name: ";
+                std::string response = input_window.show(message);
+                std::string dir_path = current_panel->get_current_dir() + "/" + response;
+                create_directory(dir_path);
+                current_panel->update();
                 break;
             }
             case 'c':
