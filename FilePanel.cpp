@@ -1,5 +1,5 @@
 #include "FilePanel.h"
-
+#include <algorithm>
 #include <cstring>
 #include <dirent.h>
 #include <limits.h>
@@ -8,6 +8,7 @@
 #include <ncurses.h>
 #include <fcntl.h>
 #include "input_window.h"
+
 #define MAX_TABS 10
 
 CopiedFile copied_file_or_directory;
@@ -267,50 +268,43 @@ void FilePanel::rename_file_or_directory() {
 
     InputWindow input_window(120, 8);
     std::string message = "Enter new name for " + old_name + ":";
-    new_name = input_window.show(message);
 
-    if (new_name.empty()) {
-        // Очищаем строку перед выводом сообщения об ошибке
-        int y, x;
-        getyx(stdscr, y, x);
-        mvprintw(y, 0, " %*s", COLS, "");
-        printw("New name cannot be empty. Enter new name: ");
-        refresh();
-        return;
-    }
+    while (true) {
+        new_name = input_window.show(message);
 
-    // Проверяем, не совпадает ли новое имя с уже существующим
-    for (const auto& file : files) {
-        if (file == new_name) {
-            int y, x;
-            getyx(stdscr, y, x);
-            mvprintw(y, 0, " %*s", COLS, "");
+        if (new_name.empty()) {
+            printw("New name cannot be empty. Enter new name: ");
+            refresh();
+            continue;
+        }
+
+        // Проверяем, не совпадает ли новое имя с уже существующим
+        if (std::find_if(files.begin(), files.end(),
+                         [&new_name](const std::string& file) {
+                             return file == new_name;
+                         }) != files.end()) {
             printw("A file or directory with that name already exists. Enter new name: ");
             refresh();
-            return;
+            message = "Enter new name for " + old_name + ":";
+            continue;
         }
+
+        // Если новое имя не совпадает с существующими, выходим из цикла
+        break;
     }
 
     std::string old_path = current_dir + "/" + old_name;
     std::string new_path = current_dir + "/" + new_name;
 
     if (rename(old_path.c_str(), new_path.c_str()) == 0) {
-        int y, x;
-        getyx(stdscr, y, x);
-        mvprintw(y, 0, " %*s", COLS, "");
-        refresh();
-
         clearok(stdscr, TRUE);
         update();
     } else {
-        int y, x;
-        getyx(stdscr, y, x);
-        mvprintw(y, 0, " %*s", COLS, "");
         printw("Failed to rename file or directory. Enter new name: ");
         refresh();
     }
 
-    curs_set(0); // скрываем курсор после закрытия окна ввода
+    curs_set(0);
 }
 
 void FilePanel::copy_file_or_directory() {

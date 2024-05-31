@@ -64,28 +64,34 @@ int main() {
                 }
                 break;
             }
-            case KEY_DC: // Delete key
-            {
-                FilePanel* current_panel = active_panel ? &left_panel : &right_panel;
-                std::string file_path = current_panel->get_current_dir() + "/" + current_panel->get_selected_file();
-                struct stat st;
-                if (stat(file_path.c_str(), &st) == 0) {
-                    InputWindow input_window(100, 10);
-                    std::string message;
-                    if (S_ISDIR(st.st_mode)) {
-                        message = "Are you sure you want to delete the directory '" + current_panel->get_selected_file() + "'? (y/n)";
-                    } else {
-                        message = "Are you sure you want to delete the file '" + current_panel->get_selected_file() + "'? (y/n)";
-                    }
-                    std::string response = input_window.show(message);
-                    if (response == "yes" || response == "y") {
-                        std::string command = "rm -r '" + file_path + "'";
-                        system(command.c_str());
-                        current_panel->update();
-                    }
-                }
-                break;
+            case KEY_DC:    
+                {   
+                    FilePanel* current_panel = active_panel ? &left_panel : &right_panel;
+                    std::string file_path = current_panel->get_current_dir() + "/" + current_panel->get_selected_file();
+                        struct stat st;
+                        if (stat(file_path.c_str(), &st) == 0) {
+        if (file_path == "/" || file_path == "/home" || file_path == "/usr" || file_path == "/etc" || file_path == "/var" || file_path == "/bin" || file_path == "/sbin" || file_path == "/lib" || file_path == "/opt") {
+            printw("Error: Cannot delete system directory or file.\n");
+            refresh();
+        } else {
+            InputWindow input_window(100, 10);
+            std::string message;
+            if (S_ISDIR(st.st_mode)) {
+                message = "Are you sure you want to delete the directory '" + current_panel->get_selected_file() + "'? (y/n)";
+            } else {
+                message = "Are you sure you want to delete the file '" + current_panel->get_selected_file() + "'? (y/n)";
             }
+            std::string response = input_window.show(message);
+            if (response == "yes" || response == "y") {
+                std::string command = "rm -r '" + file_path + "'";
+                system(command.c_str());
+                current_panel->update();
+            }
+        }
+    }
+    break;
+}
+
             case '\t':
                 active_panel = !active_panel;
                 break;
