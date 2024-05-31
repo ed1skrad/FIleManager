@@ -69,6 +69,8 @@ private:
     std::string tabs[10];
     int current_tab_index;
     void list_directory();
+    int scroll_position;
+    int max_scroll_position;
 };
 
 #endif // FILEPANEL_H

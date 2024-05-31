@@ -33,7 +33,7 @@ std::string FilePanel::get_selected_file() const {
 }
 
 FilePanel::FilePanel(int start_y, int start_x, int height, int width)
-        : y(start_y), x(start_x), h(height), w(width), selected(false) {
+        : y(start_y), x(start_x), h(height), w(width), selected(false), scroll_position(0), max_scroll_position(0) {
     win = newwin(h, w, y, x);
     selected_file = 0;
     getcwd(current_dir_cstr, PATH_MAX);
@@ -45,6 +45,7 @@ FilePanel::FilePanel(int start_y, int start_x, int height, int width)
 FilePanel::~FilePanel() {
     delwin(win);
 }
+
 
 void FilePanel::draw() {
     werase(win);
@@ -67,8 +68,10 @@ void FilePanel::draw() {
     if (files.empty()) {
         mvwprintw(win, h / 2, (w - 20) / 2, "No files in this directory");
     } else {
-        for (size_t i = 0; i < files.size(); ++i) {
-            if (static_cast<int>(i) == selected_file && selected)
+        int start_index = scroll_position;
+        int end_index = std::min(scroll_position + h - 5, static_cast<int>(files.size()));
+        for (int i = start_index; i < end_index; ++i) {
+            if (i == selected_file && selected)
                 wattron(win, A_REVERSE);
 
             struct stat st;
@@ -79,11 +82,11 @@ void FilePanel::draw() {
 
                 std::string size = std::to_string(st.st_size);
 
-                mvwprintw(win, i + 4, 1, "%s", files[i].c_str());
-                mvwprintw(win, i + 4, w / 3, "%s", size.c_str());
-                mvwprintw(win, i + 4, 2 * w / 3, "%s", asctime(time_info));
+                mvwprintw(win, i - scroll_position + 4, 1, "%s", files[i].c_str());
+                mvwprintw(win, i - scroll_position + 4, w / 3, "%s", size.c_str());
+                mvwprintw(win, i - scroll_position + 4, 2 * w / 3, "%s", asctime(time_info));
             } else {
-                mvwprintw(win, i + 4, 1, "%s", files[i].c_str());
+                mvwprintw(win, i - scroll_position + 4, 1, "%s", files[i].c_str());
             }
 
             wattroff(win, A_REVERSE);
@@ -104,6 +107,8 @@ void FilePanel::draw() {
 
 void FilePanel::update() {
     list_directory();
+    scroll_position = 0;
+    max_scroll_position = std::max(0, static_cast<int>(files.size()) - h + 5);
     draw();
 }
 
@@ -113,6 +118,12 @@ void FilePanel::move_selection(int dir) {
         selected_file = files.size() - 1;
     else if (selected_file >= static_cast<int>(files.size()))
         selected_file = 0;
+
+    if (selected_file < scroll_position)
+        scroll_position = selected_file;
+    else if (selected_file >= scroll_position + h - 5)
+        scroll_position = selected_file - h + 6;
+
     draw();
 }
 
