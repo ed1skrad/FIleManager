@@ -51,7 +51,11 @@ void FilePanel::draw() {
     box(win, 0, 0);
     mvwprintw(win, 0, (w - 13) / 2, "File Browser");
 
-    mvwprintw(win, 1, 1, "Current path: %s", current_dir.c_str());
+    std::string current_dir_display = current_dir;
+    if (current_dir_display.back() == '/' && current_dir_display.size() > 1) {
+        current_dir_display.pop_back();
+    }
+    mvwprintw(win, 1, 1, "Current path: %s", current_dir_display.c_str());
 
     mvwprintw(win, 2, 1, "Name");
     mvwprintw(win, 2, w / 3, "Size");
@@ -91,14 +95,12 @@ void FilePanel::draw() {
         mvwprintw(win, h - 3, 1, "Selected: %s", selected_file_name.c_str());
     }
 
-
     for (int i = 1; i < h + 100; ++i) {
         mvwaddch(win, i, w - 1, ACS_VLINE);
     }
 
     wrefresh(win);
 }
-
 
 void FilePanel::update() {
     list_directory();
@@ -130,7 +132,11 @@ void FilePanel::change_directory(int dir) {
     } else if (dir == 1) { // forward
         if (selected_file >= static_cast<int>(files.size()) || files[selected_file] == ".." || files[selected_file] == ".")
             return;
-        new_dir = current_dir + "/" + files[selected_file];
+        new_dir = current_dir;
+        if (new_dir != "/") {
+            new_dir += "/";
+        }
+        new_dir += files[selected_file];
     }
 
     struct stat st;
@@ -155,15 +161,16 @@ void FilePanel::list_directory() {
 
     dirent* entry;
     while ((entry = readdir(dir)) != nullptr) {
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+        if (strcmp(entry->d_name, "..") == 0) {
             files.insert(files.begin(), entry->d_name);
-        } else {
+        } else if (strcmp(entry->d_name, ".") != 0) {
             files.push_back(entry->d_name);
         }
     }
 
     closedir(dir);
 }
+
 
 bool FilePanel::is_selected() const {
     return selected;
