@@ -285,19 +285,11 @@ void FilePanel::rename_file_or_directory() {
     while (true) {
         new_name = input_window.show(message);
 
-        if (new_name.empty()) {
-            printw("New name cannot be empty. Enter new name: ");
-            refresh();
-            continue;
-        }
-
-        if (std::find_if(files.begin(), files.end(),
-                         [&new_name](const std::string& file) {
-                             return file == new_name;
-                         }) != files.end()) {
-            printw("A file or directory with that name already exists. Enter new name: ");
-            refresh();
-            message = "Enter new name for " + old_name + ":";
+        if (new_name.empty() || std::find_if(files.begin(), files.end(),
+                                             [&new_name](const std::string& file) {
+                                                 return file == new_name;
+                                             }) != files.end()) {
+            message = "Invalid name. Enter new name: ";
             continue;
         }
 
@@ -311,8 +303,7 @@ void FilePanel::rename_file_or_directory() {
         clearok(stdscr, TRUE);
         update();
     } else {
-        printw("Failed to rename file or directory. Enter new name: ");
-        refresh();
+        message = "Failed to rename file or directory. Enter new name: ";
     }
 
     curs_set(0);
