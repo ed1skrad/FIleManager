@@ -46,6 +46,7 @@ public:
     void copy_file_or_directory();
     void paste_file_or_directory();
     void open_file();
+    void show_file_info();
     void set_size(int height, int width) {
         h = height;
         w = width;

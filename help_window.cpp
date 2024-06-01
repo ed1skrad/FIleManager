@@ -33,7 +33,8 @@ void HelpWindow::show() {
     mvwprintw(win, 9, 2, "Press 'c' to copy a file or directory.");
     mvwprintw(win, 10, 2, "Press 'v' to paste a file or directory.");
     mvwprintw(win, 11, 2, "Press 'o' to open a file.");
-    mvwprintw(win, 12, 2, "Press 'q' to quit the program.");
+    mvwprintw(win, 12, 2, "Press 'i' to get info about file.");
+    mvwprintw(win, 13, 2, "Press 'q' to quit the program.");
 
     wrefresh(win);
     getch();

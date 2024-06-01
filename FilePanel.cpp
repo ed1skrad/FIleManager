@@ -8,6 +8,7 @@
 #include <ncurses.h>
 #include <fcntl.h>
 #include "input_window.h"
+#include <ctime>
 
 #define MAX_TABS 10
 
@@ -58,7 +59,6 @@ void FilePanel::draw() {
     }
     mvwprintw(win, 1, 1, "Current path: %s", current_dir_display.c_str());
 
-    mvwprintw(win, 2, 1, "Name");
     mvwprintw(win, 2, w / 3, "Size");
     mvwprintw(win, 2, 2 * w / 3, "Last Modified");
 
@@ -95,7 +95,7 @@ void FilePanel::draw() {
 
     if (selected_file >= 0 && selected_file < static_cast<int>(files.size())) {
         std::string selected_file_name = files[selected_file];
-        mvwprintw(win, h - 3, 1, "Selected: %s", selected_file_name.c_str());
+        mvwprintw(win, 2, 1, "Selected: %s", selected_file_name.c_str());
     }
 
     for (int i = 1; i < h + 100; ++i) {
@@ -192,15 +192,12 @@ void FilePanel::set_selected(bool selected) {
 }
 
 void FilePanel::create_tab() {
-    // Find an empty tab slot
     for (int i = 0; i < MAX_TABS; ++i) {
         if (tabs[i].empty()) {
-            // Save the current directory to the empty tab slot
             tabs[i] = current_dir;
             current_tab_index = i;
             break;
         } else if (tabs[i] == current_dir) {
-            // If a tab with the same directory already exists, switch to it
             current_tab_index = i;
             return;
         }
@@ -209,7 +206,6 @@ void FilePanel::create_tab() {
 
 
 void FilePanel::switch_to_tab(int tab_index) {
-    // Switch to the specified tab (0-9) if it exists
     if (tab_index >= 0 && tab_index < 10 && !tabs[tab_index].empty()) {
         current_dir = tabs[tab_index];
         strcpy(current_dir_cstr, current_dir.c_str());
@@ -218,11 +214,10 @@ void FilePanel::switch_to_tab(int tab_index) {
 }
 
 void FilePanel::show_tabs() {
-    // Display all tabs in a separate window
-    int tab_win_y = LINES - 15; // Bottom of the screen (increased by 5)
-    int tab_win_x = 0; // Left of the screen
-    int tab_win_h = 15; // Height of the window (increased by 5)
-    int tab_win_w = COLS / 3; // One third of the screen width
+    int tab_win_y = LINES - 15; 
+    int tab_win_x = 0; 
+    int tab_win_h = 15; 
+    int tab_win_w = COLS / 3; 
 
     WINDOW* tab_win = newwin(tab_win_h, tab_win_w, tab_win_y, tab_win_x);
     werase(tab_win);
@@ -296,7 +291,6 @@ void FilePanel::rename_file_or_directory() {
             continue;
         }
 
-        // Проверяем, не совпадает ли новое имя с уже существующим
         if (std::find_if(files.begin(), files.end(),
                          [&new_name](const std::string& file) {
                              return file == new_name;
@@ -307,7 +301,6 @@ void FilePanel::rename_file_or_directory() {
             continue;
         }
 
-        // Если новое имя не совпадает с существующими, выходим из цикла
         break;
     }
 
@@ -395,7 +388,8 @@ void FilePanel::open_file() {
                 refresh();
             } else {
                 std::string command;
-                std::string extension = file_path.substr(file_path.find_last_of(".") + 1);
+                size_t dot_pos = file_path.find_last_of(".");
+                std::string extension = (dot_pos != std::string::npos) ? file_path.substr(dot_pos + 1) : "";
 
                 if (extension == "txt" || extension == "cpp" || extension == "h" || extension == "c") {
                     command = "gedit ";
@@ -405,6 +399,10 @@ void FilePanel::open_file() {
                     command = "eog ";
                 } else if (extension == "mp4" || extension == "mkv" || extension == "avi") {
                     command = "vlc ";
+                } else if (extension == "docx") {
+                    command = "libreoffice ";
+                } else if (extension.empty()) {
+                    command = "gedit ";
                 } else {
                     printw("Unsupported file type: %s\n", extension.c_str());
                     refresh();
@@ -425,4 +423,50 @@ void FilePanel::open_file() {
         refresh();
     }
 }
+
+void FilePanel::show_file_info() {
+    if (selected_file >= 0 && selected_file < static_cast<int>(files.size())) {
+        std::string file_path = current_dir + "/" + files[selected_file];
+        struct stat st;
+        if (stat(file_path.c_str(), &st) == 0) {
+            std::string name = files[selected_file];
+            std::string extension = name.substr(name.find_last_of(".") + 1);
+            std::string access_time = ctime(&st.st_atime);
+            std::string modification_time = ctime(&st.st_mtime);
+            off_t size = st.st_size;
+
+            int height = 10;
+            int width = 60;
+            int x = (COLS - width) / 2;
+            int y = (LINES - height) / 2;
+
+            WINDOW* win = newwin(height, width, y, x);
+            box(win, 0, 0);
+
+            mvwprintw(win, 1, 2, "Name: %s", name.c_str());
+            mvwprintw(win, 2, 2, "Extension: %s", extension.c_str());
+            mvwprintw(win, 3, 2, "Access Time: %s", access_time.c_str());
+            mvwprintw(win, 4, 2, "Modification Time: %s", modification_time.c_str());
+            mvwprintw(win, 5, 2, "Size: %ld bytes", size);
+            mvwprintw(win, 6, 2, "Path: %s", file_path.c_str());
+
+            wrefresh(win);
+
+            int ch;
+            while ((ch = getch()) != 27) {
+            }
+
+            delwin(win);
+            refresh();
+        } else {
+            printw("Error: Unable to stat the selected file.\n");
+            refresh();
+        }
+    } else {
+        printw("No file selected to show information.\n");
+        refresh();
+    }
+}
+
+
 
