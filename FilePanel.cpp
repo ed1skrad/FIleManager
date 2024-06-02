@@ -42,8 +42,8 @@ FilePanel::FilePanel(int start_y, int start_x, int height, int width)
     current_tab_index = 0;
 
     init_pair(1, COLOR_WHITE, COLOR_BLACK); // Цвет для файлов
-    init_pair(2, COLOR_YELLOW, COLOR_BLACK); // Цвет для директорий
-    init_pair(3, COLOR_CYAN, COLOR_BLACK); // Цвет для символических ссылок
+    init_pair(2, COLOR_CYAN, COLOR_BLACK); // Цвет для директорий
+    init_pair(3, COLOR_YELLOW, COLOR_BLACK); // Цвет для символических ссылок
     init_pair(4, COLOR_WHITE, COLOR_BLACK); // Новая цветовая пара с более темным фоном
     list_directory();
 }
@@ -58,17 +58,20 @@ void FilePanel::draw() {
     box(win, 0, 0);
     mvwprintw(win, 0, (w - 13) / 2, "File Manager");
 
+    // Отображение текущего пути
     std::string current_dir_display = current_dir;
     if (current_dir_display.back() == '/' && current_dir_display.size() > 1) {
         current_dir_display.pop_back();
     }
     mvwprintw(win, 1, 1, "Current path: %s", current_dir_display.c_str());
 
+    // Заголовки колонок
+    mvwprintw(win, 2, 1, "Filename");
     mvwprintw(win, 2, w / 3, "Size");
     mvwprintw(win, 2, 2 * w / 3, "Last Modified");
 
-    wmove(win, 3, 0);
-    whline(win, ACS_HLINE, w);
+    // Горизонтальная линия после заголовков
+    mvwhline(win, 3, 1, ACS_HLINE, w - 2);
 
     if (files.empty()) {
         mvwprintw(win, h / 2, (w - 20) / 2, "No files in this directory");
@@ -85,6 +88,9 @@ void FilePanel::draw() {
                 time_t last_modified = st.st_mtime;
                 tm* time_info = localtime(&last_modified);
 
+                char time_str[20];
+                strftime(time_str, sizeof(time_str), "%Y-%m-%d %H:%M", time_info);
+
                 std::string size = std::to_string(st.st_size);
 
                 if (S_ISDIR(st.st_mode)) {
@@ -98,7 +104,7 @@ void FilePanel::draw() {
                 mvwprintw(win, i - scroll_position + 4, 1, "%s", files[i].c_str());
                 wattroff(win, COLOR_PAIR(2) | COLOR_PAIR(3)); // Сбрасываем цвет для директорий и символических ссылок
                 mvwprintw(win, i - scroll_position + 4, w / 3, "%s", size.c_str());
-                mvwprintw(win, i - scroll_position + 4, 2 * w / 3, "%s", asctime(time_info));
+                mvwprintw(win, i - scroll_position + 4, 2 * w / 3, "%s", time_str);
 
                 wattroff(win, COLOR_PAIR(1)); // Сбрасываем цвет фона
             } else {
@@ -109,18 +115,20 @@ void FilePanel::draw() {
         }
     }
 
+    // Отображение выбранного файла
     if (selected_file >= 0 && selected_file < static_cast<int>(files.size())) {
         std::string selected_file_name = files[selected_file];
         mvwprintw(win, 2, 1, "Selected: %s", selected_file_name.c_str());
     }
 
-    for (int i = 1; i < h + 100; ++i) {
-        mvwaddch(win, i, w - 1, ACS_VLINE);
+    // Вертикальные линии для колонок
+    for (int i = 4; i < h; ++i) {
+        mvwaddch(win, i, w / 3 - 1, ACS_VLINE);
+        mvwaddch(win, i, 2 * w / 3 - 1, ACS_VLINE);
     }
 
     wrefresh(win);
 }
-
 
 void FilePanel::update() {
     list_directory();

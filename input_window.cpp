@@ -37,11 +37,22 @@ std::string InputWindow::show(const std::string& message) {
 
     wrefresh(win);
 
+    // Define the position and size of the input box
+    int input_box_y = 3;
+    int input_box_height = 3;
+    int input_box_width = getmaxx(win) - 4; // Leave some padding for the box
+    int input_box_x = 2;
+
+    // Create a sub-window for the input box
+    WINDOW* input_box = derwin(win, input_box_height, input_box_width, input_box_y, input_box_x);
+    box(input_box, 0, 0);
+    wrefresh(input_box);
+
     // Get user input and return it as a string
     std::string input;
-    std::string::size_type max_input_length = static_cast<std::string::size_type>(getmaxx(win) - 4); // 4 is an arbitrary padding value to avoid overflow
+    std::string::size_type max_input_length = static_cast<std::string::size_type>(input_box_width - 2); // Adjust for box borders
     while (true) {
-        int ch = wgetch(win);
+        int ch = wgetch(input_box);
         if (ch == '\n' || ch == 27) {
             break;
         } else if (ch == KEY_BACKSPACE || ch == 127) {
@@ -55,13 +66,16 @@ std::string InputWindow::show(const std::string& message) {
         }
 
         // Recalculate the starting position for the input to keep it centered
-        int input_start_pos = (getmaxx(win) - input.length()) / 2;
+        int input_start_pos = (input_box_width - input.length()) / 2;
 
         // Clear the input line and reprint the input
-        mvwhline(win, 2, 1, ' ', getmaxx(win) - 2); // Clear the input line
-        mvwprintw(win, 2, input_start_pos, "%s", input.c_str());
-        wrefresh(win);
+        mvwhline(input_box, 1, 1, ' ', input_box_width - 2); // Clear the input line
+        mvwprintw(input_box, 1, input_start_pos, "%s", input.c_str());
+        wrefresh(input_box);
     }
+
+    // Cleanup the input box window
+    delwin(input_box);
 
     return input;
 }
