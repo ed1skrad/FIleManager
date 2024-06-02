@@ -113,7 +113,7 @@ void FilePanel::update() {
 }
 
 void FilePanel::move_selection(int dir) {
-    selected_file += dir;
+    selected_file += dir; //изменение индекса выделенного элемента на dir
     if (selected_file < 0)
         selected_file = files.size() - 1;
     else if (selected_file >= static_cast<int>(files.size()))
@@ -134,13 +134,13 @@ void FilePanel::change_directory(int dir) {
 
     std::string new_dir;
 
-    if (dir == -1) { // back
+    if (dir == -1) { 
         if (current_dir == "/")
             return;
         new_dir = current_dir.substr(0, current_dir.find_last_of('/'));
         if (new_dir.empty())
             new_dir = "/";
-    } else if (dir == 1) { // forward
+    } else if (dir == 1) { 
         if (selected_file >= static_cast<int>(files.size()) || files[selected_file] == ".." || files[selected_file] == ".")
             return;
         new_dir = current_dir;
@@ -238,16 +238,21 @@ void FilePanel::show_tabs() {
 
 void FilePanel::delete_tab(int index) {
     if (index < 0 || index >= MAX_TABS) {
-        mvprintw(LINES - 2, 0, "Invalid tab index");
         return;
     }
 
-    if (!isdigit(tabs[index][0])) {
-        mvprintw(LINES - 2, 0, "Invalid tab index");
+    if (tabs[index].empty()) {
         return;
     }
 
     tabs[index] = "";
+
+    if (index == current_tab_index) {
+        current_tab_index = 0;
+        change_directory(0);
+    } else if (index < current_tab_index) {
+        current_tab_index--;
+    }
 }
 
 std::string FilePanel::get_tab_by_index(int index) const {

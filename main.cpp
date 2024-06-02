@@ -8,16 +8,20 @@
 #include "file_operations.h"
 
 int main() {
-    initscr();
-    raw();
-    keypad(stdscr, TRUE);
-    noecho();
-    CopiedFile copied_file_or_directory;
-    start_color();
-    init_pair(1, COLOR_WHITE, COLOR_BLUE);
-    bkgd(COLOR_PAIR(1));
-    refresh();
+    initscr();//инициализация ncrurses
+    raw();//перевод терминала в сырой режим, где каждый символ с клав
+    //иатуры передается сразу же
+    keypad(stdscr, TRUE);//обработка спец. символов на клавиатуре
+    noecho();//отключение отображения нажатых символов
+    CopiedFile copied_file_or_directory;//инициализация стуртуры для копирования и вставки файлов
+    start_color();//init поддержки цвета в ncurses
+    init_pair(1, COLOR_WHITE, COLOR_BLUE);//цветовая пара белый на синем
+    bkgd(COLOR_PAIR(1));//цвет фона
+    refresh();//обновления экрана для отображения изменений
 
+    /*
+    Размеры для левой и правой панели, а также последующая инициализация
+    */
     int y = 0;
     int x = 0;
     int h = LINES;
@@ -26,16 +30,16 @@ int main() {
     FilePanel left_panel(y, x, h, w);
     FilePanel right_panel(y, x + w, h, w);
 
-    bool active_panel = true;
+    bool active_panel = true; // переменная для отслеживания активной панели
 
     while (true) {
         left_panel.set_selected(active_panel);
         right_panel.set_selected(!active_panel);
 
-        left_panel.draw();
+        left_panel.draw(); // отрисовка панелей
         right_panel.draw();
 
-        int ch = getch();
+        int ch = getch(); //обработчик
         switch (ch) {
             case KEY_UP:
                 (active_panel ? left_panel : right_panel).move_selection(-1);
@@ -50,14 +54,14 @@ int main() {
             {
                 if (active_panel)
                 {
-                    if (left_panel.is_selected())
+                    if (left_panel.is_selected()) //проверка выбора на левой панели
                     {
                         left_panel.change_directory(1);
                     }
                 }
                 else
                 {
-                    if (right_panel.is_selected())
+                    if (right_panel.is_selected()) //проверка выбора на правой панели
                     {
                         right_panel.change_directory(1);
                     }
