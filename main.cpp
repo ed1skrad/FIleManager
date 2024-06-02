@@ -70,11 +70,11 @@ int main() {
             }
             case KEY_DC: 
             {
-                FilePanel* current_panel = active_panel ? &left_panel : &right_panel;
-                std::string file_path = current_panel->get_current_dir() + "/" + current_panel->get_selected_file();
-                struct stat st;
-                if (stat(file_path.c_str(), &st) == 0) {
-                    if (file_path[0] == '/' && file_path[1] == '.') {
+                FilePanel* current_panel = active_panel ? &left_panel : &right_panel; //указатель на текущую выбраннуб панель
+                std::string file_path = current_panel->get_current_dir() + "/" + current_panel->get_selected_file();//полный путь к файлу или dir
+                struct stat st; //структура для получения информации о файле или dir
+                if (stat(file_path.c_str(), &st) == 0) { //если функция завершилась успешно
+                    if (file_path[0] == '/' && file_path[1] == '.') { //проверка на системные dir
                         InputWindow input_window(100, 10);
                         std::string message = "Error: Cannot delete system directory";
                         input_window.show(message);
@@ -83,12 +83,12 @@ int main() {
 
                     InputWindow input_window(100, 10);
                     std::string message;
-                    if (S_ISDIR(st.st_mode)) {
+                    if (S_ISDIR(st.st_mode)) { //проверка на dir
                         message = "Are you sure you want to delete the directory '" + current_panel->get_selected_file() + "'? (y/n)";
                     } else {
                         message = "Are you sure you want to delete the file '" + current_panel->get_selected_file() + "'? (y/n)";
                     }
-                    std::string response = input_window.show(message);
+                    std::string response = input_window.show(message); //отображение сообщения
                     if (response == "yes" || response == "y") {
                         std::string command = "rm -r '" + file_path + "'";
                         system(command.c_str());
@@ -98,7 +98,7 @@ int main() {
                 break;
             }
             case '\t':
-                active_panel = !active_panel;
+                active_panel = !active_panel; //switch to panel
                 break;
             case KEY_BACKSPACE:
                 if (active_panel) {
@@ -107,7 +107,7 @@ int main() {
                     right_panel.change_directory(-1);
                 }
                 break;
-            case 10:
+            case 10://ENTER
                 if (active_panel) {
                     left_panel.change_directory(1);
                 } else {
@@ -115,7 +115,7 @@ int main() {
                 }
                 break;
             case 't':
-                (active_panel ? left_panel : right_panel).create_tab();
+                (active_panel ? left_panel : right_panel).create_tab(); //создание вкладки
                 break;
             case '0':
             case '1':
@@ -127,10 +127,10 @@ int main() {
             case '7':
             case '8':
             case '9':
-                (active_panel ? left_panel : right_panel).switch_to_tab(ch - '0');
+                (active_panel ? left_panel : right_panel).switch_to_tab(ch - '0'); //переключение на вкладку
                 break;
             case 'T':
-                (active_panel ? left_panel : right_panel).show_tabs();
+                (active_panel ? left_panel : right_panel).show_tabs();//отображение всех вкладок
                 break;
             case KEY_F(12):
             {
