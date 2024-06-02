@@ -40,6 +40,11 @@ FilePanel::FilePanel(int start_y, int start_x, int height, int width)
     getcwd(current_dir_cstr, PATH_MAX);
     current_dir = current_dir_cstr;
     current_tab_index = 0;
+
+    init_pair(1, COLOR_WHITE, COLOR_BLACK); // Цвет для файлов
+    init_pair(2, COLOR_YELLOW, COLOR_BLACK); // Цвет для директорий
+    init_pair(3, COLOR_CYAN, COLOR_BLACK); // Цвет для символических ссылок
+    init_pair(4, COLOR_WHITE, COLOR_BLACK); // Новая цветовая пара с более темным фоном
     list_directory();
 }
 
@@ -47,11 +52,11 @@ FilePanel::~FilePanel() {
     delwin(win);
 }
 
-
 void FilePanel::draw() {
     werase(win);
+    wbkgd(win, COLOR_PAIR(4));
     box(win, 0, 0);
-    mvwprintw(win, 0, (w - 13) / 2, "File Browser");
+    mvwprintw(win, 0, (w - 13) / 2, "File Manager");
 
     std::string current_dir_display = current_dir;
     if (current_dir_display.back() == '/' && current_dir_display.size() > 1) {
@@ -82,9 +87,20 @@ void FilePanel::draw() {
 
                 std::string size = std::to_string(st.st_size);
 
+                if (S_ISDIR(st.st_mode)) {
+                    wattron(win, COLOR_PAIR(2)); // Устанавливаем цвет для директорий
+                } else if (S_ISLNK(st.st_mode)) {
+                    wattron(win, COLOR_PAIR(3)); // Устанавливаем цвет для символических ссылок
+                } else {
+                    wattron(win, COLOR_PAIR(1)); // Устанавливаем цвет для файлов
+                }
+
                 mvwprintw(win, i - scroll_position + 4, 1, "%s", files[i].c_str());
+                wattroff(win, COLOR_PAIR(2) | COLOR_PAIR(3)); // Сбрасываем цвет для директорий и символических ссылок
                 mvwprintw(win, i - scroll_position + 4, w / 3, "%s", size.c_str());
                 mvwprintw(win, i - scroll_position + 4, 2 * w / 3, "%s", asctime(time_info));
+
+                wattroff(win, COLOR_PAIR(1)); // Сбрасываем цвет фона
             } else {
                 mvwprintw(win, i - scroll_position + 4, 1, "%s", files[i].c_str());
             }
@@ -104,6 +120,7 @@ void FilePanel::draw() {
 
     wrefresh(win);
 }
+
 
 void FilePanel::update() {
     list_directory();
@@ -214,19 +231,27 @@ void FilePanel::switch_to_tab(int tab_index) {
 }
 
 void FilePanel::show_tabs() {
-    int tab_win_y = LINES - 15; 
-    int tab_win_x = 0; 
-    int tab_win_h = 15; 
-    int tab_win_w = COLS / 3; 
+    int tab_win_y = LINES - 15;
+    int tab_win_x = 0;
+    int tab_win_h = 15;
+    int tab_win_w = COLS / 3;
 
     WINDOW* tab_win = newwin(tab_win_h, tab_win_w, tab_win_y, tab_win_x);
     werase(tab_win);
     box(tab_win, 0, 0);
 
+    mvwprintw(tab_win, 0, (tab_win_w - 4) / 2, "Tabs"); // Добавляем надпись "Tabs" вверху окна
+
+    bool has_tabs = false; // Флаг, указывающий наличие вкладок
     for (int i = 0; i < 10; ++i) {
         if (!tabs[i].empty()) {
             mvwprintw(tab_win, i + 1, 1, "%d: %s", i, tabs[i].c_str());
+            has_tabs = true; // Устанавливаем флаг в true, если вкладка найдена
         }
+    }
+
+    if (!has_tabs) {
+        mvwprintw(tab_win, tab_win_h / 2, (tab_win_w - 14) / 2, "Here is no tabs"); // Выводим сообщение "Here is no tabs", если вкладок нет
     }
 
     wrefresh(tab_win);

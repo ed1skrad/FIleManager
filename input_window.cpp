@@ -1,10 +1,14 @@
 #include "input_window.h"
+#include <ncurses.h>
 
 InputWindow::InputWindow(int width, int height) {
     initscr();
     raw();
     keypad(stdscr, TRUE);
     noecho();
+    start_color();
+
+    init_pair(5, COLOR_RED, COLOR_BLACK); 
 
     x = (COLS - width) / 2;
     y = (LINES - height) / 2;
@@ -23,7 +27,11 @@ std::string InputWindow::show(const std::string& message) {
 
     wclear(win);
     box(win, 0, 0);
+
+    wattron(win, COLOR_PAIR(5)); // Устанавливаем красный цвет текста
     mvwprintw(win, 1, (x - message.length()) / 2, "%s", message.c_str());
+    wattroff(win, COLOR_PAIR(5)); // Сбрасываем цвет текста
+
     wmove(win, 2, x / 2 - message.length() / 2 + message.length());
     wrefresh(win);
 
@@ -48,7 +56,3 @@ std::string InputWindow::show(const std::string& message) {
 
     return input;
 }
-
-
-
-
