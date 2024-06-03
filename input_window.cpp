@@ -53,7 +53,10 @@ std::string InputWindow::show(const std::string& message) {
     std::string::size_type max_input_length = static_cast<std::string::size_type>(input_box_width - 2); // Adjust for box borders
     while (true) {
         int ch = wgetch(input_box);
-        if (ch == '\n' || ch == 27) {
+        if (ch == '\n') {
+            break;
+        } else if (ch == 27) {
+            input.clear();
             break;
         } else if (ch == KEY_BACKSPACE || ch == 127) {
             if (!input.empty()) {

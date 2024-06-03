@@ -74,12 +74,6 @@ int main() {
                 std::string file_path = current_panel->get_current_dir() + "/" + current_panel->get_selected_file();
                 struct stat st;
                 if (stat(file_path.c_str(), &st) == 0) {
-                    if (file_path[0] == '/' && file_path[1] == '.') {
-                        InputWindow input_window(100, 10);
-                        std::string message = "Error: Cannot delete system directory";
-                        input_window.show(message);
-                        break;
-                    }
 
                     InputWindow input_window(100, 10);
                     std::string message;
