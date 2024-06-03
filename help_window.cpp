@@ -1,6 +1,7 @@
 #include "help_window.h"
 #include <ncurses.h>
 
+// Конструктор класса HelpWindow, инициализирует ncurses и создает окно помощи
 HelpWindow::HelpWindow(int height, int width) {
     initscr();
     raw();
@@ -18,20 +19,24 @@ HelpWindow::HelpWindow(int height, int width) {
     box(win, 0, 0);
 }
 
+// Деструктор класса HelpWindow, очищает окно помощи и завершает ncurses
 HelpWindow::~HelpWindow() {
     delwin(win);
     endwin();
 }
 
+// Метод класса HelpWindow, отображает окно помощи
 void HelpWindow::show() {
+    // Очищаем окно помощи и рисуем рамку вокруг него
     werase(win);
     box(win, 0, 0);
 
-    // Display help text with sections
+    // Устанавливаем цвет заголовка и выводим его в окне помощи
     wattron(win, COLOR_PAIR(3));
     mvwprintw(win, 2, 2, "Use the arrow keys to navigate through the files and directories.");
     mvwhline(win, 3, 1, '-', getmaxx(win) - 2);
 
+    // Выводим список команд и их описаний в окне помощи
     mvwprintw(win, 4, 2, "Press Tab to switch between panels.");
     mvwprintw(win, 5, 2, "Press Enter to open a file or enter a directory.");
     mvwprintw(win, 6, 2, "Press Backspace to go back to the parent directory.");
@@ -51,10 +56,13 @@ void HelpWindow::show() {
     mvwprintw(win, 17, 2, "Press 'q' to quit the program.");
     wattroff(win, COLOR_PAIR(3));
 
+    // Устанавливаем цвет заголовка и выводим его в окне помощи
     wattron(win, COLOR_PAIR(2));
     mvwprintw(win, 1, 1, "Help:");
     wattroff(win, COLOR_PAIR(2));
 
+    // Обновляем содержимое окна помощи на экране
     wrefresh(win);
+    // Ожидаем нажатия клавиши пользователем
     getch();
 }
